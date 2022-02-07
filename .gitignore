@@ -1,0 +1,7 @@
+data/
+libraries/
+lightning_logs/
+model_weights/
+sampled_data/
+tb_logs/
+wandb/
