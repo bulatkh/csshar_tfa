@@ -1,0 +1,34 @@
+experiment:
+  seed: 28
+  num_epochs_ssl: 200
+  num_epochs_fine_tuning: 50
+  batch_size_fine_tuning: 128
+
+model:
+  transformer:
+    from_module: transformer
+    encoder_class_name: Transformer
+    encoder_name: transformer
+    args: []
+    kwargs:
+      in_channels: 6
+      max_len: 30
+
+      kernel_size: 3
+      out_channels: [32, 64, 128]
+      
+      num_head: 8
+      num_layers: 8
+
+      lr: 0.0001
+      optimizer_name: "adam"
+      use_cls: True
+  ssl:
+      args: []
+      kwargs:
+        ssl_lr: 0.0001
+        projection_hidden: 256
+        temperature: 0.1
+        ssl_batch_size: 256
+        optimizer_name_ssl: "lars"
+        

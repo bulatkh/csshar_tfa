@@ -1,0 +1,9 @@
+1. Train and fine-tune on the whole training set (Baseline Activity Recognition)
+
+### Concatenation of features after transformer (default in paper)
+python ssl_training.py --experiment_config_path ./configs/models/ssl/simclr/simclr_mobiact.yaml --dataset mobi_act --augmentations_path configs/augmentations/jit_scal_rot.yaml --framework simclr --model transformer --num-workers 16 
+
+### CLS token
+python ssl_training.py --experiment_config_path ./configs/models/ssl/simclr/simclr_mobiact_cls.yaml --dataset mobi_act --augmentations_path configs/augmentations/jit_scal_rot.yaml --framework simclr --model transformer --num-workers 16 
+
+2. Semi-supervised learning

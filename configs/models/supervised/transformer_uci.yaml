@@ -1,0 +1,25 @@
+experiment:
+  seed: 28
+  num_epochs_ssl: 0
+  num_epochs_fine_tuning: 50
+  batch_size_fine_tuning: 128
+
+model:
+  transformer:
+    from_module: transformer
+    encoder_class_name: Transformer
+    encoder_name: transformer
+    args: []
+    kwargs:
+      in_channels: 6
+      max_len: 30
+
+      kernel_size: 3
+      out_channels: [32, 64, 128]
+      
+      num_head: 8
+      num_layers: 8
+
+      lr: 0.0001
+      optimizer_name: "adam"
+      use_cls: True

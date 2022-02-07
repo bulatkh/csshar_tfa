@@ -1,0 +1,18 @@
+jittering:
+  apply: true
+  parameters:
+    sigma: 0.5
+scaling:
+  apply: true
+  parameters:
+    sigma: 0.5
+rotation:
+  apply: false
+  parameters: {}
+channel_shuffle:
+  apply: false
+  parameters: {}
+permutation:
+  apply: true
+  parameters:
+    max_segments: 5

@@ -1,0 +1,71 @@
+program: ssl_training.py
+method: grid
+project: sweep-ssl-inertial-utd_mhad_pooling
+entity: self-supervised-mmhar
+metric:
+  name: test_accuracy
+  goal: maximize
+command:
+  - ${env}
+  - ${interpreter}
+  - ${program}
+  - "--experiment_config_path"
+  - "configs/inertial_ssl/inertial_simclr_utd.yaml"
+  - "--dataset"
+  - "utd_mhad"
+  - "--model"
+  - "transformer"
+  - "--augmentations_path"
+  - "configs/inertial_augmentations/augmentations_utd.yaml"
+  - "--no_ckpt"
+  - "--sweep"
+parameters:
+  # General configs
+  num_epochs_ssl: 
+    values: [300]
+  num_epochs_fine_tuning:
+    values: [100]
+  batch_size_fine_tuning:
+    values: [64]
+
+  # SSL configs (will overwrite kwargs in ssl model definition)
+  ssl.batch_size:
+    values: [64, 128]
+  ssl.temperature:
+    values: [0.05, 0.1, 0.2]
+
+  # Encoder configs (will overwrite kwargs in encoder model definition)
+  encoder.sample_length:
+    values: [50]
+
+  # Augmentation configs (scaling)
+  augmentations.jittering.apply:
+    values: [true, false]
+  augmentations.jittering.parameters.sigma:
+    values: [0.5, 1, 2]
+  augmentations.jittering.probability:
+    values: [0.75]
+  
+  augmentations.scaling.apply:
+    values: [true, false]
+  augmentations.scaling.parameters.sigma:
+    values: [0.5, 1, 2]
+  augmentations.scaling.probability:
+    values: [0.75]
+
+  augmentations.rotation.apply:
+    values: [true, false]
+  augmentations.rotation.probability:
+    values: [0.75]
+
+  augmentations.permutation.apply:
+    values: [true, false]
+  augmentations.permutation.parameters.max_segments:
+    values: [3]
+  augmentations.permutation.probability:
+    values: [0.75]
+
+  augmentations.channel_shuffle.apply:
+    values: [true, false]
+  augmentations.channel_shuffle.probability:
+    values: [0.75]

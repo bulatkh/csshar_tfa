@@ -1,0 +1,23 @@
+uci_har:
+  train: './sampled_data/uci_har/uci_smartphones/train'
+  val: './sampled_data/uci_har/uci_smartphones/val'
+  test: './sampled_data/uci_har/uci_smartphones/test'
+  n_classes: 6
+  class_names: ['WALKING', 'WALKING_UPSTAIRS', 'WALKING_DOWNSTAIRS', 'SITTING', 'STANDING', 'LAYING']
+  main_metric: f1-score
+
+usc_had: 
+  train: './sampled_data/usc_had/usc_had/train'
+  val: './sampled_data/usc_had/usc_had/val'
+  test: './sampled_data/usc_had/usc_had/test'
+  n_classes: 12
+  class_names: ['Walking Forward', 'Walking Left', 'Walking Right', 'Walking Upstairs', 'Walking Downstairs', 'Running Forward', 'Jumping Up', 'Sitting', 'Standing', 'Sleeping', 'Elevator Up', 'Elevator Down']
+  main_metric: f1-score
+
+mobi_act:
+  train: './sampled_data/mobi_act/mobi_act/train'
+  val: './sampled_data/mobi_act/mobi_act/val'
+  test: './sampled_data/mobi_act/mobi_act/test'
+  n_classes: 11
+  class_names: ['Standing', 'Walking', 'Jogging', 'Jumping', 'Stairs up', 'Stairs down', 'Stand to sit(sit on chair)', 'Sitting on chair', 'Sit to stand(chair up)', 'Car-step in', 'Car-step out']
+  main_metric: f1-score
