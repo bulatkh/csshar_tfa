@@ -5,3 +5,8 @@ model_weights/
 sampled_data/
 tb_logs/
 wandb/
+results/
+.ipynb_checkpoints/
+models/__pycache__/
+cs_data/
+utils/__pycache__/
