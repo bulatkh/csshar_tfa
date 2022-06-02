@@ -1,0 +1,71 @@
+program: ssl_training.py
+method: grid
+project: sweep_simclr_dtw_uci
+entity: sensor_har
+metric:
+  name: test_f1-score
+  goal: maximize
+command:
+  - ${env}
+  - ${interpreter}
+  - ${program}
+  - "--experiment_config_path"
+  - "configs/models/ssl/simclr/dtw_uci.yaml"
+  - "--dataset"
+  - "uci_har"
+  - "--model"
+  - "transformer"
+  - "--augmentations_path"
+  - "configs/augmentations/jit_scal_shift.yaml"
+  - "--framework"
+  - "dtw"
+  - "--sweep"
+
+parameters:
+  # General configs
+  num_epochs_ssl: 
+    values: [200]
+  num_epochs_fine_tuning:
+    values: [100]
+  batch_size_fine_tuning:
+    values: [64]
+
+  # SSL configs (will overwrite kwargs in ssl model definition)
+  ssl.ssl_batch_size:
+    values: [128, 256]
+  ssl.temperature:
+    values: [0.1]
+  ssl.alpha:
+    values: [0.1, 0.25, 0.5]
+  ssl.beta:
+    values: [0.05]
+  ssl.l:
+    values: [0.5]
+  ssl.sigma:
+    values: [7]
+  # Augmentation configs (scaling)
+  augmentations.jittering.apply:
+    values: [true]
+  augmentations.jittering.parameters.sigma:
+    values: [0.5]
+
+  augmentations.scaling.apply:
+    values: [true]
+  augmentations.scaling.parameters.sigma:
+    values: [0.5]
+
+  augmentations.rotation.apply:
+    values: [false]
+
+  augmentations.permutation.apply:
+    values: [false]
+  augmentations.permutation.parameters.max_segments:
+    values: [3]
+
+  augmentations.channel_shuffle.apply:
+    values: [false]
+
+  augmentations.shift.apply:
+    values: [true]
+  augmentations.shift.parameters.max_shift:
+    values: [5, 10]

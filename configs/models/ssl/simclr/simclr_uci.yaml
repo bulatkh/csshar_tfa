@@ -1,7 +1,7 @@
 experiment:
   seed: 28
   num_epochs_ssl: 200
-  num_epochs_fine_tuning: 50
+  num_epochs_fine_tuning: 100
   batch_size_fine_tuning: 128
 
 model:
@@ -20,13 +20,15 @@ model:
       num_head: 8
       num_layers: 8
 
-      lr: 0.0001
+      lr: 0.001
       optimizer_name: "adam"
   ssl:
       args: []
       kwargs:
         ssl_lr: 0.0001
         projection_hidden: 256
+        embedding_size: 256
+        
         temperature: 0.1
-        ssl_batch_size: 256
+        ssl_batch_size: 128
         optimizer_name_ssl: "lars"
