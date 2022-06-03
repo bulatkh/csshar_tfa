@@ -1,6 +1,5 @@
 import torch
 import torch.nn.functional as F
-from pl_bolts.optimizers.lars import LARS
 from pytorch_lightning.core.lightning import LightningModule
 from torch import nn
 

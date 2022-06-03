@@ -135,7 +135,7 @@ class Transformer(nn.Module):
         if self.use_cls:
             x = x[0]
         else:
-            x = x.permute(1, 2, 0)
+            x = x.permute(1, 0, 2)
 
         if self.return_attention:
             return x, attention_maps

@@ -39,6 +39,8 @@ class LinearClassifier(nn.Module):
 class ProjectionMLP(nn.Module):
 	def __init__(self, in_size, fc_size, out_size):
 		super().__init__()
+		self.out_size = out_size
+		
 		self.layer1 = nn.Sequential(
 			nn.Linear(in_size, fc_size),
 			nn.ReLU(inplace=True)

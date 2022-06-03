@@ -3,7 +3,7 @@ import itertools
 import os
 import shutil
 from models.mlp import ProjectionMLP
-# from models.cmc import ContrastiveMultiviewCoding
+
 from models.simclr import SimCLR
 from torchvision import transforms
 from pytorch_lightning import loggers
@@ -12,9 +12,6 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 from callbacks.log_classifier_metrics import LogClassifierMetrics
 from callbacks.log_confusion_matrix import LogConfusionMatrix
-
-# from callbacks.ssl_online_evaluator import SSLOnlineEvaluator
-# from callbacks.mm_ssl_online_evaluator import MultimodalSSLOnlineEvaluator
 
 from datasets.sensor_torch_datamodule import SensorDataModule
 from utils.augmentation_utils import compose_random_augmentations

@@ -10,3 +10,7 @@ results/
 models/__pycache__/
 cs_data/
 utils/__pycache__/
+embeddings/
+embedding_vis*
+embedding_vis.ipynb
+limited_vis.ipynb
