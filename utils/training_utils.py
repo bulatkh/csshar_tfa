@@ -121,13 +121,6 @@ def setup_model_checkpoint_callback_last(model_weights_path, dataset, model, exp
     )	
 
 
-# def setup_online_evaluation_callback(modalities, feature_sizes, n_classes):
-#     if len(modalities) == 1:
-#         return SSLOnlineEvaluator(modalities[0], feature_sizes[modalities[0]], n_classes)
-#     else:
-#         return MultimodalSSLOnlineEvaluator(modalities, feature_sizes, n_classes)
-
-
 def setup_callbacks(early_stopping_metric, early_stopping_mode, class_names, num_classes, no_ckpt, model_weights_path, metric, dataset, model, experiment_id):
     callbacks = []
     callbacks.append(setup_early_stopping_callback(early_stopping_metric, mode=early_stopping_mode))
@@ -142,14 +135,7 @@ def setup_callbacks_ssl(no_ckpt, model_weights_path, dataset, model, experiment_
     callbacks = []
     if not no_ckpt:
         callbacks.append(setup_model_checkpoint_callback_last(model_weights_path, dataset, model, experiment_id))
-    # if online_eval:
-    #     callbacks.append(setup_online_evaluation_callback(**online_eval_args))
     return callbacks
-
-
-# def get_tuning_grid_list(tuning_config_path, modality, model):
-#     tuning_config = load_yaml_to_dict(tuning_config_path)[modality][model]['kwargs']
-#     return [dict(zip(tuning_config.keys(), x)) for x in itertools.product(*tuning_config.values())]
 
 
 def check_sampling_cfg(model_cfg, transform_cfg):
