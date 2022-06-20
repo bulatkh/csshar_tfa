@@ -2,7 +2,12 @@
 
 This repository covers the following papers on SSL for sensor-based Human Activity Recognition:
 1. B. Khaertdinov, E. Ghaleb, and S. Asteriadis, “Contrastive Self-supervised Learning for Sensor-based Human Activity Recognition“, in the 2021 International Joint Conference on Biometrics (IJCB 2021), Shenzhen, China, August 4-7, 2021 - [[link]](https://www.researchgate.net/publication/353481823_Contrastive_Self-Supervised_Learning_for_Sensor-based_Human_Activity_Recognition)
+
+	![SIMCLR](/paper_img/simclr.png)
+
 2. Partially (unimodal case) - B. Khaertdinov, E. Ghaleb, and S. Asteriadis, “Contrastive Self-supervised Learning with Temporal Feature alignment for Sensor-based Human Activity Recognition“, - [[link]]()
+
+	![TFA](/paper_img/)
 
 Bibtex:
 ```
