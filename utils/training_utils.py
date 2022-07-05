@@ -2,9 +2,12 @@ import importlib
 import itertools
 import os
 import shutil
+import torch
 from models.mlp import ProjectionMLP
 
 from models.simclr import SimCLR
+from models.mlp import MLP, MLPDropout
+from models.supervised import SupervisedModel
 from torchvision import transforms
 from pytorch_lightning import loggers
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -28,9 +31,9 @@ def init_transforms(random_augmentations_dict={}):
   
 def init_datamodule(train_path, val_path, test_path, batch_size,
                     train_transforms={}, test_transforms={},
-                    ssl = False, n_views = 2, num_workers = 1, limited_k=None):
+                    ssl = False, n_views = 2, num_workers = 1, limited_k=None, store_in_ram=True):
     data_module = SensorDataModule(train_path, val_path, test_path, batch_size, train_transforms = train_transforms, test_transforms = test_transforms,
-        ssl = ssl, n_views = n_views, num_workers = num_workers, limited_k = limited_k)
+        ssl = ssl, n_views = n_views, num_workers = num_workers, limited_k = limited_k, store_in_ram = store_in_ram)
     return data_module
 
   
@@ -57,7 +60,17 @@ def init_encoder(model_cfg, ckpt_path=None):
         return class_(*model_cfg['args'], **model_cfg['kwargs'])
     else:
         return class_.load_from_checkpoint(ckpt_path)
-
+    
+def init_finetuned_ckpt(model_cfg, n_classes, le=False, ckpt_path=None, mlp_do=True):
+    encoder = init_encoder(model_cfg)
+    if le:
+        LinearClassifier(encoder.out_size, n_classes)
+    elif mlp_do:
+        classifier = MLPDropout(encoder.out_size, n_classes)
+    else:
+        classifier = MLP(encoder.out_size, n_classes)
+    model = SupervisedModel(encoder=encoder, classifier=classifier)
+    return model.load_from_checkpoint(ckpt_path, encoder=encoder, classifier=classifier, strict=False)
 
 def parse_splits(dataset_configs):
     return dataset_configs['splits']['train'], dataset_configs['splits']['val'], dataset_configs['splits']['test']
