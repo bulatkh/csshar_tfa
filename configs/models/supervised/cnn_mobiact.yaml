@@ -1,0 +1,21 @@
+experiment:
+  seed: 28
+  num_epochs_ssl: 0
+  num_epochs_fine_tuning: 100
+  batch_size_fine_tuning: 128
+
+model:
+  cnn1d:
+    from_module: conv_net
+    encoder_class_name: CNN1D
+    encoder_name: cnn1d
+    args: []
+    kwargs:
+      in_channels: 6
+      max_len: 30
+
+      kernel_size: 3
+      out_channels: [64, 128, 256]
+
+      lr: 0.0005
+      optimizer_name: "adam"
