@@ -27,7 +27,7 @@ def parse_arguments():
     # data and models
     parser.add_argument('--dataset', required=True, choices=['uci_har', 'mobi_act', 'usc_had'], help='Dataset name')
     parser.add_argument('--framework', default='simclr', choices=['simclr', 'dtw'], help='SSL framework')
-    parser.add_argument('--model', required=True, choices=['transformer'], help='Encoder model')
+    parser.add_argument('--model', required=True, choices=['cnn1d', 'transformer'], help='Encoder model')
     parser.add_argument('--model_save_path', default='./model_weights', help='Folder for the model weights')
 
     # used to run only in fine tuning mode
@@ -37,46 +37,47 @@ def parse_arguments():
     parser.add_argument('--fine_tuning_ckpt_path', help='Path to a pretrained encoder. Required if running with --fine_tuning.')
 
     # other training configs
+    parser.add_argument('--no_ram', action='store_true', default=False, help='If true, dataset is not first read into RAM')
     parser.add_argument('--no_ckpt', action='store_true', default=False, help='Flag for running experiments without saving model weights')
     parser.add_argument('--num-workers', default=1, type=int, help='Num workers in dataloaders')
     parser.add_argument('--sweep', action='store_true', default=False, help='Set automatically if running in WandB sweep mode. You do not need to set this manually.')
 
-	# cross-subject cross-validation
+    # cross-subject cross-validation
     parser.add_argument('--cross_subject_cv', action='store_true', default=False, help='Flag for using cross-subject cross-validation')
     parser.add_argument('--num_folds', default=5, help='Number of folds in cross-subject cv')
     parser.add_argument('--fine_tuning_ckpt_paths', nargs='+', help='Path to pre-trained encoders if only fine-tuning is needed for cross-subject cv')
 
-	# semi-supervised learning
+    # semi-supervised learning
     parser.add_argument('--semi_sup', action='store_true', default=False, help='Flag for running semi-supervised learning experiments. Can be combined with --supervised')
     parser.add_argument('--semi_sup_runs', default=10, help='Number of SSL runs')
     parser.add_argument('--semi_sup_results_path', default='./results/semi_sup', help='Semi-sup results path')
-    
+
     return parser.parse_args()
 
 
 def ssl_pre_training(args, cfg, dataset_cfg, experiment_id, loggers_list, loggers_dict):
-	""" Runs SSL pre-training
-	
-	Parameters
-	----------
-	args : argparse.Namespace
-		arguments parsed from argparse
-	cfg : dict
-		experiment configs parsed from the input yaml
-	dataset_cfg : dict
-		dataset configs parsed from the input yaml
-	experiment_id : string
-		unique experiment name
-	loggers_list : list
-		list of loggers
-	loggers_dict : dict
-		dictionary with loggers
+    """ Runs SSL pre-training
+    
+    Parameters
+    ----------
+    args : argparse.Namespace
+        arguments parsed from argparse
+    cfg : dict
+        experiment configs parsed from the input yaml
+    dataset_cfg : dict
+        dataset configs parsed from the input yaml
+    experiment_id : string
+        unique experiment name
+    loggers_list : list
+        list of loggers
+    loggers_dict : dict
+        dictionary with loggers
 
-	Returns
-	-------
-	Pre-trained encoder model and altered cfg
-	"""
-	# seed for pre-training for reproducability
+    Returns
+    -------
+    Pre-trained encoder model and altered cfg
+    """
+    # seed for pre-training for reproducability
     seed_everything(cfg['experiment']['seed'])
 
     # initialize transforms: modailty transforms + random transformations for view generation
@@ -113,11 +114,11 @@ def ssl_pre_training(args, cfg, dataset_cfg, experiment_id, loggers_list, logger
     
     # init datamodule with ssl flag
     datamodule = init_datamodule(dataset_cfg[args.dataset]['train'], dataset_cfg[args.dataset]['val'], dataset_cfg[args.dataset]['test'], 
-        batch_size=cfg['model']['ssl']['kwargs']['ssl_batch_size'], train_transforms=train_transforms, test_transforms=test_transforms, ssl=True, n_views=2, num_workers=args.num_workers)
+        batch_size=cfg['model']['ssl']['kwargs']['ssl_batch_size'], train_transforms=train_transforms, test_transforms=test_transforms, ssl=True, n_views=2, num_workers=args.num_workers, store_in_ram = not args.no_ram)
 
     # initialize encoder, projection and ssl framework model
     encoder = init_encoder(cfg['model'][args.model])
-	projection = ProjectionMLP(encoder.out_size, cfg['model']['ssl']['kwargs']['projection_hidden'], cfg['model']['ssl']['kwargs']['embedding_size'])
+    projection = ProjectionMLP(encoder.out_size, cfg['model']['ssl']['kwargs']['projection_hidden'], cfg['model']['ssl']['kwargs']['embedding_size'])
     
     if args.framework == 'simclr':
         model = SimCLR(encoder, projection, **cfg['model']['ssl']['kwargs'])
@@ -139,41 +140,40 @@ def ssl_pre_training(args, cfg, dataset_cfg, experiment_id, loggers_list, logger
     trainer = Trainer.from_argparse_args(args=args, logger=loggers_list, gpus=1, deterministic=True, max_epochs=num_epochs, default_root_dir='logs',
         callbacks=callbacks, checkpoint_callback=not args.no_ckpt)
     
-	# train the model
+    # train the model
     trainer.fit(model, datamodule)
 
     return model.encoder, cfg
 
 
 def fine_tuning(args, cfg, dataset_cfg, encoder, loggers_list, loggers_dict, experiment_id, limited_k=None, ft=True):
-	""" Fine-tunes and tests an output model and freezes the provided encoder. If supervised argument is True, encoder is fine-tuned as well. 
-	
-	Parameters
-	----------
-	args : argparse.Namespace
-		arguments parsed from argparse
-	cfg : dict
-		experiment configs parsed from the input yaml
-	dataset_cfg : dict
-		dataset configs parsed from the input yaml
-	encoder : pytorch_lightning.core.lightning.LightningModule OR torch.nn.Module
-		pytorch encoder
-	loggers_list : list
-		list of loggers
-	loggers_dict : dict
-		dictionary with loggers
-	experiment_id : string
-		unique experiment name
-	limited_k : int
-		Only for semi-sup: number of training data instances per class available for training 
-	ft : bool
-		fine-tuning flag: if ft is True -> encoder is frozen, if ft is False -> encoder is tuned as well
+    """ Fine-tunes and tests an output model and freezes the provided encoder. If supervised argument is True, encoder is fine-tuned as well. 
+    
+    Parameters
+    ----------
+    args : argparse.Namespace
+        arguments parsed from argparse
+    cfg : dict
+        experiment configs parsed from the input yaml
+    dataset_cfg : dict
+        dataset configs parsed from the input yaml
+    encoder : pytorch_lightning.core.lightning.LightningModule OR torch.nn.Module
+        pytorch encoder
+    loggers_list : list
+        list of loggers
+    loggers_dict : dict
+        dictionary with loggers
+    experiment_id : string
+        unique experiment name
+    limited_k : int
+        Only for semi-sup: number of training data instances per class available for training 
+    ft : bool
+        fine-tuning flag: if ft is True -> encoder is frozen, if ft is False -> encoder is tuned as well
 
-	Returns
-	-------
-	Dictionary with metrics and their values
-	"""
-
+    Returns
+    -------
+    Dictionary with metrics and their values
+    """
     if not args.semi_sup:
            seed_everything(cfg['experiment']['seed']) # reset seed for consistency in results
     batch_size = cfg['experiment']['batch_size_fine_tuning']
@@ -208,7 +208,7 @@ def fine_tuning(args, cfg, dataset_cfg, encoder, loggers_list, loggers_dict, exp
 
     # init datamodule
     datamodule = init_datamodule(dataset_cfg[args.dataset]['train'], dataset_cfg[args.dataset]['val'], dataset_cfg[args.dataset]['test'],
-        batch_size=batch_size, num_workers=args.num_workers, limited_k=limited_k)
+        batch_size=batch_size, num_workers=args.num_workers, limited_k=limited_k, store_in_ram = not args.no_ram)
 
     # init trainer, run training (fine-tuning) and test
     trainer = Trainer.from_argparse_args(args=args, logger=loggers_list, gpus=1, deterministic=True, max_epochs=num_epochs, default_root_dir='logs', 
@@ -228,30 +228,30 @@ def fine_tuning(args, cfg, dataset_cfg, encoder, loggers_list, loggers_dict, exp
 
 
 def init_loggers(args, cfg, experiment_id, fine_tune_only=False, approach='simclr'):
-	""" Initialize the loggers based on the experiment configs. Typically creates wandb and tensorboard loggers.
+    """ Initialize the loggers based on the experiment configs. Typically creates wandb and tensorboard loggers.
 
-	Parameters
-	----------
-	args : argparse.Namespace
-		arguments parsed from argparse
-	cfg : dict
-		experiment configs parsed from the input yaml
-	experiment_id : string
-		unique experiment name
-	fine_tuning_only : bool
-		flag for fine-tuning without pre-training
-	approach : string
-		framework 
-	Returns
-	-------
-	Dictionary with metrics and their values
-	"""
+    Parameters
+    ----------
+    args : argparse.Namespace
+        arguments parsed from argparse
+    cfg : dict
+        experiment configs parsed from the input yaml
+    experiment_id : string
+        unique experiment name
+    fine_tuning_only : bool
+        flag for fine-tuning without pre-training
+    approach : string
+        framework 
+    Returns
+    -------
+    Dictionary with metrics and their values
+    """
     experiment_info = { # default values; may be overrided by sweep config
         "dataset": args.dataset,
         "model": cfg['model'][args.model]['encoder_class_name'],
         "seed": cfg['experiment']['seed']
     }
-	# overwrite configs for sweeps
+    # overwrite configs for sweeps
     if not fine_tune_only:
         num_epochs = cfg['experiment']['num_epochs_ssl']
         if args.augmentations_path is not None:
@@ -274,23 +274,23 @@ def init_loggers(args, cfg, experiment_id, fine_tune_only=False, approach='simcl
 
 
 def run_one_experiment(args, cfg, dataset_cfg, limited_k=None):
-	""" Runs one experiment with settings from passed arguments and configs
+    """ Runs one experiment with settings from passed arguments and configs
 
-	Parameters
-	----------
-	args : argparse.Namespace
-		arguments parsed from argparse
-	cfg : dict
-		experiment configs parsed from the input yaml
-	dataset_cfg : dict
-		dataset configs parsed from the input yaml
-	limited_k : int
-		Only for semi-sup: number of training data instances per class available for training 
+    Parameters
+    ----------
+    args : argparse.Namespace
+        arguments parsed from argparse
+    cfg : dict
+        experiment configs parsed from the input yaml
+    dataset_cfg : dict
+        dataset configs parsed from the input yaml
+    limited_k : int
+        Only for semi-sup: number of training data instances per class available for training 
 
-	Returns
-	-------
-	Dictionary with metrics and their values
-	"""
+    Returns
+    -------
+    Dictionary with metrics and their values
+    """
     experiment_id = generate_experiment_id()
     if args.supervised:
         approach = 'supervised'
@@ -327,13 +327,17 @@ def validate_args(args):
 
 
 def main():
-	# parse cli arguments and configs
+    # parse cli arguments and configs
     args = parse_arguments()
+
     validate_args(args)
     cfg = load_yaml_to_dict(args.experiment_config_path)
     dataset_cfg = load_yaml_to_dict(args.dataset_config_path)
 
-	# cross-subject cross-validation
+    if args.supervised:
+        args.framework = 'supervised'
+        
+    # cross-subject cross-validation
     if args.cross_subject_cv:
         for i in range(1, args.num_folds + 1):
             fold_path = os.path.join(dataset_cfg[args.dataset]['cross-subject'], 'fold{}'.format(i))
@@ -344,8 +348,8 @@ def main():
                 args.fine_tuning_ckpt_path = args.fine_tuning_ckpt_paths[i - 1]
             print(dataset_cfg)
             run_one_experiment(args, cfg, dataset_cfg)
-	
-	# semi-supervised learning scenarios
+    
+    # semi-supervised learning scenarios
     if args.semi_sup:
         results = {}
         for k in [1, 2, 5, 10, 25, 50, 100]:
@@ -356,8 +360,8 @@ def main():
                 results[str(k)]['trial_{}'.format(i)][args.framework] = metrics['test_f1-score']
                 dict_to_json(results, args.semi_sup_results_path + '_' + args.framework + '.json')         
     
-	# single pre-training and fine-tuning experiment (feature representation learning -- when fine-tuning is done on the whole train set)
-	else:
+    # single pre-training and fine-tuning experiment (feature representation learning -- when fine-tuning is done on the whole train set)
+    else:
         run_one_experiment(args, cfg, dataset_cfg)
 
 
