@@ -31,10 +31,14 @@ class SupervisedModel(LightningModule):
     def log_hyperparams(self):
         self.hparams['in_channels'] = self.encoder.in_channels
         self.hparams['out_channels'] = self.encoder.out_channels
-        self.hparams['num_head'] = self.encoder.num_head
-        self.hparams['num_layers'] = self.encoder.num_layers
         self.hparams['kernel_size'] = self.encoder.kernel_size
-        self.hparams['dropout'] = self.encoder.dropout
+        
+        # log hyperparameters related to the transformer model only
+        if self.encoder.name == 'transformer':
+            self.hparams['num_head'] = self.encoder.num_head
+            self.hparams['num_layers'] = self.encoder.num_layers
+            self.hparams['dropout'] = self.encoder.dropout
+
         self.save_hyperparameters("optimizer_name", "lr")
 
     def forward(self, x):
@@ -46,7 +50,7 @@ class SupervisedModel(LightningModule):
     def _prepare_batch(self, batch):
         x = batch[0]
         y = batch[1].long()
-        if self.encoder.name == 'transformer':
+        if self.encoder.name in ['cnn1d', 'transformer']:
             x = x.permute(0, 2, 1)
         x = x.float()
         return x, y

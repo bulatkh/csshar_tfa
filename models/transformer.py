@@ -30,12 +30,14 @@ class PositionalEncoding(nn.Module):
         
 
 class ConvLayers(nn.Module):
-    def __init__(self, in_channels, out_channels=[32, 64, 128], kernel_size=3, stride=1, sample_len=30):
+    def __init__(self, in_channels, out_channels=[32, 64, 128], kernel_size=3, stride=1, sample_len=30, relu_type='leaky'):
         super(ConvLayers, self).__init__()
 
         padding = int(kernel_size / 2) 
-
-        self.relu = nn.ReLU()
+        if relu_type == 'leaky':
+            self.relu = nn.LeakyReLU()
+        else:
+            self.relu = nn.ReLU()
         self.conv1 = nn.Conv1d(in_channels=in_channels, out_channels=out_channels[0], kernel_size=kernel_size, stride=stride, padding=padding)
         self.batchNorm1 = nn.BatchNorm1d(out_channels[0])
         self.conv2 = nn.Conv1d(in_channels=out_channels[0], out_channels=out_channels[1], kernel_size=kernel_size, stride=stride, padding=padding)
