@@ -18,7 +18,8 @@ class SensorDataModule(LightningDataModule):
             cae=False,
             n_views = 2,
             num_workers = 1,
-            limited_k=None):
+            limited_k=None,
+            store_in_ram=True):
         super().__init__()
         # paths
         self.train_path = train_path
@@ -34,6 +35,8 @@ class SensorDataModule(LightningDataModule):
         self.n_views = n_views
         self.num_workers = num_workers
         self.limited_k = limited_k
+
+        self.store_in_ram = store_in_ram
 
         self._init_dataloaders()
         self.save_hyperparameters("batch_size", "ssl", "cae", "n_views", "limited_k")
@@ -56,7 +59,8 @@ class SensorDataModule(LightningDataModule):
             limited=True if self.limited_k is not None else False,
             limited_k=self.limited_k,
             instance_data=False,
-            cae=self.cae
+            cae=self.cae,
+            store_in_ram=self.store_in_ram
         )
         
     def _create_val_dataset(self):
@@ -68,12 +72,14 @@ class SensorDataModule(LightningDataModule):
             data_path=self.val_path,
             ssl = self.ssl,
             transforms=val_transforms,
-            cae = self.cae
+            cae = self.cae,
+            store_in_ram=self.store_in_ram
         )
 
     def _create_test_dataset(self):
         return SensorTorchDataset(
-            data_path=self.test_path
+            data_path=self.test_path,
+            store_in_ram=self.store_in_ram
         )
 
     def train_dataloader(self):
