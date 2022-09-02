@@ -4,8 +4,19 @@ uci_har:
   test: './sampled_data/uci_har/uci_smartphones/test'
   n_classes: 6
   class_names: ['WALKING', 'WALKING_UPSTAIRS', 'WALKING_DOWNSTAIRS', 'SITTING', 'STANDING', 'LAYING']
+  devices: ['acc_X', 'acc_Y', 'acc_Z', 'gyro_X', 'gyro_Y', 'gyro_Z']
   main_metric: f1-score
   cross-subject: './cs_data/uci_har/uci_smartphones/'
+  act_to_type:
+    WALKING: 'active'
+    WALKING_UPSTAIRS: 'active'
+    WALKING_DOWNSTAIRS: 'active'
+    SITTING: 'stable'
+    STANDING: 'stable'
+    LAYING: 'stable'
+  type_encoding :
+    stable: 0
+    active: 1
 
 
 usc_had: 
@@ -14,6 +25,7 @@ usc_had:
   test: './sampled_data/usc_had/usc_had/test'
   n_classes: 12
   class_names: ['Walking Forward', 'Walking Left', 'Walking Right', 'Walking Upstairs', 'Walking Downstairs', 'Running Forward', 'Jumping Up', 'Sitting', 'Standing', 'Sleeping', 'Elevator Up', 'Elevator Down']
+  devices: ["acc_x, w/ unit g (gravity)", "acc_y, w/ unit g", "acc_z, w/ unit g", "gyro_x, w/ unit dps (degrees per second)", "gyro_y, w/ unit dps", "gyro_z, w/ unit dps"]
   main_metric: f1-score
   cross-subject: './cs_data/usc_had/usc_had/'
 
@@ -23,5 +35,24 @@ mobi_act:
   test: './sampled_data/mobi_act/mobi_act/test'
   n_classes: 11
   class_names: ['Standing', 'Walking', 'Jogging', 'Jumping', 'Stairs up', 'Stairs down', 'Stand to sit(sit on chair)', 'Sitting on chair', 'Sit to stand(chair up)', 'Car-step in', 'Car-step out']
+  devices: ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']
   main_metric: f1-score
-  cross-subject: './cs_data/mobi_act/mobi_act/'
+  cross-subject: './cs_data/mobi_act/mobi_act/' 
+  act_to_type:
+    Car-step in: 'transition'
+    Car-step out: 'transition'
+    Jogging: 'active'
+    Jumping: 'active'
+    Sit to stand(chair up): 'transition'
+    Sitting on chair: 'stable'
+    Stairs down: 'active'
+    Stairs up: 'active'
+    Stand to sit(sit on chair): 'transition'
+    Standing: 'stable'
+    Walking: 'active'
+  type_encoding :
+    stable: 0
+    active: 1
+    transition: 2
+  probing_train_type : ['Car-step in', 'Car-step out', 'Sit to stand(chair up)', 'Walking', 'Stairs down', 'Sitting on chair', 'Jogging', 'Stairs up']
+  probing_test_type : ['Stand to sit(sit on chair)', 'Jumping', 'Standing']
