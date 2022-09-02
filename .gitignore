@@ -9,10 +9,14 @@ tb_logs/
 wandb/
 
 results/
+xai_results/
 
 # notebooks
 embedding_vis.ipynb
+embeddings_analysis.ipynb
 limited_vis.ipynb
+random_occlusion_graphs.ipynb
+xai_captum.ipynb
 
 # saved models
 model_weights/
