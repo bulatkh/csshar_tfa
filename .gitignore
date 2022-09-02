@@ -7,12 +7,16 @@ sampled_data/
 lightning_logs/
 tb_logs/
 wandb/
-model_weights/
+
 results/
 
 # notebooks
 embedding_vis.ipynb
 limited_vis.ipynb
+
+# saved models
+model_weights/
+probing_model_weights/
 
 # pycache and misc
 models/__pycache__/
