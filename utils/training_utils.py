@@ -6,7 +6,7 @@ import torch
 from models.mlp import ProjectionMLP
 
 from models.simclr import SimCLR
-from models.mlp import MLP, MLPDropout
+from models.mlp import MLP, MLPDropout, LinearClassifier
 from models.supervised import SupervisedModel
 from torchvision import transforms
 from pytorch_lightning import loggers
@@ -31,9 +31,12 @@ def init_transforms(random_augmentations_dict={}):
   
 def init_datamodule(train_path, val_path, test_path, batch_size,
                     train_transforms={}, test_transforms={},
-                    ssl = False, n_views = 2, num_workers = 1, limited_k=None, store_in_ram=True):
+                    ssl = False, n_views = 2, num_workers = 1, limited_k=None, store_in_ram=True,
+                    devices=None, noise_devices=None, noise_devices_test=None, randomly_masked_channels_test=0):
+    
     data_module = SensorDataModule(train_path, val_path, test_path, batch_size, train_transforms = train_transforms, test_transforms = test_transforms,
-        ssl = ssl, n_views = n_views, num_workers = num_workers, limited_k = limited_k, store_in_ram = store_in_ram)
+        ssl = ssl, n_views = n_views, num_workers = num_workers, limited_k = limited_k, store_in_ram = store_in_ram, devices=devices, 
+        noise_devices=noise_devices, noise_devices_test=noise_devices_test, randomly_masked_channels_test=randomly_masked_channels_test)
     return data_module
 
   
@@ -64,7 +67,7 @@ def init_encoder(model_cfg, ckpt_path=None):
 def init_finetuned_ckpt(model_cfg, n_classes, le=False, ckpt_path=None, mlp_do=True):
     encoder = init_encoder(model_cfg)
     if le:
-        LinearClassifier(encoder.out_size, n_classes)
+        classifier = LinearClassifier(encoder.out_size, n_classes)
     elif mlp_do:
         classifier = MLPDropout(encoder.out_size, n_classes)
     else:
@@ -96,7 +99,8 @@ def setup_loggers(logger_names=['tensorboard', 'wandb'], tb_dir=None, experiment
         wandb_logger = setup_wandb_logger(experiment_info, dataset, experiment_id, entity, approach)
         loggers.append(wandb_logger)
         loggers_dict['wandb'] = wandb_logger
-        shutil.copy(experiment_config_path, os.path.join(wandb_logger.experiment.dir, "experiment_config.yaml"))
+        if experiment_config_path is not None:
+            shutil.copy(experiment_config_path, os.path.join(wandb_logger.experiment.dir, "experiment_config.yaml"))
     return loggers, loggers_dict
 
 

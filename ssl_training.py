@@ -6,6 +6,7 @@ import os
 from pytorch_lightning import Trainer, seed_everything
 
 from models.simclr import SimCLR
+from models.vicreg import VicReg
 from models.mlp import LinearClassifier, MLPDropout, ProjectionMLP, MLP
 from models.supervised import SupervisedModel
 from utils.experiment_utils import generate_experiment_id, load_yaml_to_dict, dict_to_json
@@ -26,7 +27,7 @@ def parse_arguments():
 
     # data and models
     parser.add_argument('--dataset', required=True, choices=['uci_har', 'mobi_act', 'usc_had'], help='Dataset name')
-    parser.add_argument('--framework', default='simclr', choices=['simclr', 'dtw'], help='SSL framework')
+    parser.add_argument('--framework', default='simclr', choices=['simclr', 'dtw', 'vicreg'], help='SSL framework')
     parser.add_argument('--model', required=True, choices=['cnn1d', 'transformer'], help='Encoder model')
     parser.add_argument('--model_save_path', default='./model_weights', help='Folder for the model weights')
 
@@ -51,6 +52,11 @@ def parse_arguments():
     parser.add_argument('--semi_sup', action='store_true', default=False, help='Flag for running semi-supervised learning experiments. Can be combined with --supervised')
     parser.add_argument('--semi_sup_runs', default=10, help='Number of SSL runs')
     parser.add_argument('--semi_sup_results_path', default='./results/semi_sup', help='Semi-sup results path')
+
+    parser.add_argument('--noise_devices', nargs='+', help='Devices that should be masked out with Gaussian nouse in occlusion experiments')
+    parser.add_argument('--noise_devices_test', nargs='+', help='Devices that should be masked out with Gaussian nouse in test data')
+    parser.add_argument('--randomly_masked_channels_test', type=int, default=0, help='Number of channels to randomly mask')
+    parser.add_argument('--xai_study', action='store_true', default=False)
 
     return parser.parse_args()
 
@@ -114,7 +120,8 @@ def ssl_pre_training(args, cfg, dataset_cfg, experiment_id, loggers_list, logger
     
     # init datamodule with ssl flag
     datamodule = init_datamodule(dataset_cfg[args.dataset]['train'], dataset_cfg[args.dataset]['val'], dataset_cfg[args.dataset]['test'], 
-        batch_size=cfg['model']['ssl']['kwargs']['ssl_batch_size'], train_transforms=train_transforms, test_transforms=test_transforms, ssl=True, n_views=2, num_workers=args.num_workers, store_in_ram = not args.no_ram)
+        batch_size=cfg['model']['ssl']['kwargs']['ssl_batch_size'], train_transforms=train_transforms, test_transforms=test_transforms, ssl=True, n_views=2,
+        num_workers=args.num_workers, store_in_ram = not args.no_ram, devices=dataset_cfg[args.dataset]['devices'], noise_devices=args.noise_devices)
 
     # initialize encoder, projection and ssl framework model
     encoder = init_encoder(cfg['model'][args.model])
@@ -124,6 +131,8 @@ def ssl_pre_training(args, cfg, dataset_cfg, experiment_id, loggers_list, logger
         model = SimCLR(encoder, projection, **cfg['model']['ssl']['kwargs'])
     elif args.framework == 'dtw':
         model = DTWModule(encoder, projection, **cfg['model']['ssl']['kwargs'])
+    elif args.framework == 'vicreg':
+        model = VicReg(encoder, projection, **cfg['model']['ssl']['kwargs'])
 
     # init callbacks
     callbacks = setup_callbacks_ssl(
@@ -208,7 +217,8 @@ def fine_tuning(args, cfg, dataset_cfg, encoder, loggers_list, loggers_dict, exp
 
     # init datamodule
     datamodule = init_datamodule(dataset_cfg[args.dataset]['train'], dataset_cfg[args.dataset]['val'], dataset_cfg[args.dataset]['test'],
-        batch_size=batch_size, num_workers=args.num_workers, limited_k=limited_k, store_in_ram = not args.no_ram)
+        batch_size=batch_size, num_workers=args.num_workers, limited_k=limited_k, store_in_ram = not args.no_ram, devices=dataset_cfg[args.dataset]['devices'], 
+        noise_devices=args.noise_devices, noise_devices_test=args.noise_devices_test, randomly_masked_channels_test=args.randomly_masked_channels_test)
 
     # init trainer, run training (fine-tuning) and test
     trainer = Trainer.from_argparse_args(args=args, logger=loggers_list, gpus=1, deterministic=True, max_epochs=num_epochs, default_root_dir='logs', 
@@ -301,7 +311,16 @@ def run_one_experiment(args, cfg, dataset_cfg, limited_k=None):
     if args.semi_sup:
         approach += '_semi_sup'
 
+    if args.xai_study:
+        approach += '_xai'
+
     loggers_list, loggers_dict = init_loggers(args, cfg, experiment_id, fine_tune_only=False, approach=approach)
+
+    # if args.noise_devices is not None:
+    #     use_devices = set(dataset_cfg[args.dataset]['devices'])
+    #     for d in args.noise_devices:
+    #         use_devices.remove(d)
+    #     cfg['model'][args.model]['kwargs']['in_channels'] = len(use_devices)
     ### ssl full pre-training + fine_tuning
     if not (args.supervised or args.fine_tuning):
         encoder, cfg = ssl_pre_training(args, cfg, dataset_cfg, experiment_id, loggers_list, loggers_dict)
