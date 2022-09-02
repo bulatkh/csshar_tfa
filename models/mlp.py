@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
 
+from pytorch_lightning.core.lightning import LightningModule
+
 class MLP(nn.Module):
-    def __init__(self, in_size, out_size, hidden=[256, 128], relu_type='leaky'):
+    def __init__(self, in_size, out_size, hidden=[256, 128], relu_type='relu'):
         super().__init__()
         self.name = 'MLP'
         if relu_type == 'leaky':
@@ -38,6 +40,54 @@ class LinearClassifier(nn.Module):
     def forward(self, x):
         x = self.classifier(x)
         return x
+
+
+class LinearClassifierProbing(LightningModule):
+    def __init__(self, in_size, out_size, lr):
+        super().__init__()
+        self.name = 'LinearClassifierProbing'
+        self.classifier = nn.Linear(in_size, out_size)
+
+        self.loss = nn.CrossEntropyLoss()
+        self.lr = lr
+
+    def forward(self, x):
+        x = self.classifier(x)
+        return x
+
+    def _prepare_batch(self, batch):
+        x = batch[0].float()
+        y = batch[1].long()
+        return x, y
+    
+    def training_step(self, batch, batch_idx):
+        x, y = self._prepare_batch(batch)
+        out = self(x)
+        loss = self.loss(out, y)
+        self.log("train_loss", loss)
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        return self._shared_eval(batch, batch_idx, "test")
+
+    def _shared_eval(self, batch, batch_idx, prefix):
+        x, y = self._prepare_batch(batch)
+        out = self(x)
+        preds = torch.argmax(out, dim=1)
+
+        loss = self.loss(out, y)
+        self.log(f"{prefix}_loss", loss)
+        return {f"{prefix}_loss": loss, "preds": preds}
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.5)
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler
+            }
+        }
 
 
 class ProjectionMLP(nn.Module):

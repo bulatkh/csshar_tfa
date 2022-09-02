@@ -13,7 +13,7 @@ class CNN1D(nn.Module):
                 pool_padding=0, 
                 pool_size=2, 
                 supervised=True,
-				relu_type = 'leaky',
+				relu_type = 'relu',
                 **kwargs):
         """
         1D-Convolutional Network

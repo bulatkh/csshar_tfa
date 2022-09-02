@@ -30,7 +30,7 @@ class PositionalEncoding(nn.Module):
         
 
 class ConvLayers(nn.Module):
-    def __init__(self, in_channels, out_channels=[32, 64, 128], kernel_size=3, stride=1, sample_len=30, relu_type='leaky'):
+    def __init__(self, in_channels, out_channels=[32, 64, 128], kernel_size=3, stride=1, sample_len=30, relu_type='relu'):
         super(ConvLayers, self).__init__()
 
         padding = int(kernel_size / 2) 
