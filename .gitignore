@@ -1,17 +1,32 @@
+# data
 data/
-libraries/
-lightning_logs/
-model_weights/
+cs_data/
 sampled_data/
+
+# logs and results
+lightning_logs/
 tb_logs/
 wandb/
+
 results/
-.ipynb_checkpoints/
-models/__pycache__/
-cs_data/
-utils/__pycache__/
-embeddings/
-embedding_vis*
+xai_results/
+
+# notebooks
 embedding_vis.ipynb
+embeddings_analysis.ipynb
 limited_vis.ipynb
+random_occlusion_graphs.ipynb
+xai_captum.ipynb
+
+# saved models
+model_weights/
+probing_model_weights/
+
+# pycache and misc
+models/__pycache__/
+utils/__pycache__/
+datasets/__pycache__/
+.ipynb_checkpoints/
 scripts.txt
+embeddings/
+libraries/
