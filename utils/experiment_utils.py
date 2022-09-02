@@ -50,3 +50,14 @@ def dict_to_json(dict_, json_path):
         os.makedirs(os.path.split(json_path)[0])
     with open(json_path, 'w') as fp:
             json.dump(dict_, fp)
+
+
+def seed_all(seed):
+	torch.manual_seed(seed)
+	torch.cuda.manual_seed_all(seed)
+	torch.cuda.manual_seed(seed)
+	np.random.seed(seed)
+	random.seed(seed)
+	torch.backends.cudnn.deterministic = True
+	torch.backends.cudnn.benchmark = False
+	os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"

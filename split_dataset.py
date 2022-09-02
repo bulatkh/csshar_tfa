@@ -5,7 +5,7 @@ import numpy as np
 import random
 import shutil
 
-from utils.utils import seed_all
+from utils.experiment_utils import seed_all
 
 
 def parse_arguments():
