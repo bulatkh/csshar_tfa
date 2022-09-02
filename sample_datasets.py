@@ -140,7 +140,7 @@ def parse_arguments():
 	parser.add_argument("--sample_dur", help='sample duration in seconds', type=float, default=1)
 	parser.add_argument("--overlap_pct", help='overlap percentage between samples', type=float, default=0.5)
 	parser.add_argument("--pamap_include_optional", help='include optional labels', action='store_true')
-	parser.add_argument("--downsample_freq", help='frequency for downsampling', default=None)
+	parser.add_argument("--downsample_freq", help='frequency for downsampling', type=float, default=None)
 	parser.add_argument("--pamap_columns_ignore", help='substrings of columns to ignore pamap', default=[], nargs='+')
 	
 	args = parser.parse_args()
@@ -195,11 +195,10 @@ def main():
 							files = tmp_dataset.get_files(user, exp)
 							# if dataset == 'opportunity':
 							#     tmp_instance = DATASETS_DICT[dataset]['instance_class'](files, mode=mode, include_columns=OPP_COLUMNS)
-							# elif dataset == 'pamap2':
-							#     tmp_instance = DATASETS_DICT[dataset]['instance_class'](files, substring_eliminate=args.pamap_columns_ignore)
-							# else:  
-							
-							tmp_instance = DATASETS_DICT[dataset]['instance_class'](files)
+							if dataset == 'pamap2':
+							    tmp_instance = DATASETS_DICT[dataset]['instance_class'](files, substring_eliminate=args.pamap_columns_ignore)
+							else:  
+								tmp_instance = DATASETS_DICT[dataset]['instance_class'](files)
 							if dataset == 'uci_smartphones':
 							    ignore_labels = UCI_ACTIVITIES_TO_IGNORE
 							elif dataset not in ['pamap2', 'daphnet']:
