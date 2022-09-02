@@ -1,17 +1,24 @@
+# data
 data/
-libraries/
-lightning_logs/
-model_weights/
+cs_data/
 sampled_data/
+
+# logs and results
+lightning_logs/
 tb_logs/
 wandb/
+model_weights/
 results/
-.ipynb_checkpoints/
-models/__pycache__/
-cs_data/
-utils/__pycache__/
-embeddings/
-embedding_vis*
+
+# notebooks
 embedding_vis.ipynb
 limited_vis.ipynb
+
+# pycache and misc
+models/__pycache__/
+utils/__pycache__/
+datasets/__pycache__/
+.ipynb_checkpoints/
 scripts.txt
+embeddings/
+libraries/
