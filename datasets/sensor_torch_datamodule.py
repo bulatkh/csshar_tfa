@@ -19,7 +19,12 @@ class SensorDataModule(LightningDataModule):
             n_views = 2,
             num_workers = 1,
             limited_k=None,
-            store_in_ram=True):
+            store_in_ram=True,
+            devices=None,
+            noise_devices=None,
+            noise_devices_test=None,
+            randomly_masked_channels_test=0,
+            get_subjects=False):
         super().__init__()
         # paths
         self.train_path = train_path
@@ -35,11 +40,32 @@ class SensorDataModule(LightningDataModule):
         self.n_views = n_views
         self.num_workers = num_workers
         self.limited_k = limited_k
+        # xai related
+        self.noise_devices = noise_devices
+        self.noise_devices_test = noise_devices_test
+        self.randomly_masked_channels_test = randomly_masked_channels_test
+
+        self.get_subjects = get_subjects
+        self._get_use_devices(devices, noise_devices, noise_devices_test)
 
         self.store_in_ram = store_in_ram
 
         self._init_dataloaders()
-        self.save_hyperparameters("batch_size", "ssl", "cae", "n_views", "limited_k")
+        self.save_hyperparameters("batch_size", "ssl", "cae", "n_views", "limited_k", "noise_devices", "noise_devices_test", "randomly_masked_channels_test")
+
+    def _get_use_devices(self, devices, noise_devices, noise_devices_test):
+        use_devices = set(devices)
+        if noise_devices is not None:
+            for noise_d in noise_devices:
+                use_devices.remove(noise_d)
+        self.use_devices = list(use_devices)
+        if noise_devices_test is None:
+            self.use_devices_test = self.use_devices
+        else:
+            use_devices_test = set(devices)
+            for noise_d in noise_devices_test:
+                use_devices_test.remove(noise_d)
+            self.use_devices_test = list(use_devices_test)
 
     def _init_dataloaders(self):
         train_dataset = self._create_train_dataset()
@@ -60,7 +86,9 @@ class SensorDataModule(LightningDataModule):
             limited_k=self.limited_k,
             instance_data=False,
             cae=self.cae,
-            store_in_ram=self.store_in_ram
+            store_in_ram=self.store_in_ram,
+            use_devices=self.use_devices,
+            get_subjects=self.get_subjects
         )
         
     def _create_val_dataset(self):
@@ -73,13 +101,18 @@ class SensorDataModule(LightningDataModule):
             ssl = self.ssl,
             transforms=val_transforms,
             cae = self.cae,
-            store_in_ram=self.store_in_ram
+            store_in_ram=self.store_in_ram,
+            use_devices=self.use_devices,
+            get_subjects=self.get_subjects
         )
 
     def _create_test_dataset(self):
         return SensorTorchDataset(
             data_path=self.test_path,
-            store_in_ram=self.store_in_ram
+            store_in_ram=self.store_in_ram,
+            use_devices=self.use_devices_test,
+            get_subjects=self.get_subjects,
+            randomly_masked_channels=self.randomly_masked_channels_test
         )
 
     def train_dataloader(self):

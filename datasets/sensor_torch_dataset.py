@@ -8,18 +8,20 @@ from tqdm import tqdm
 
 
 class SensorTorchDataset(Dataset):
-    def __init__(self, data_path, get_subjects=False, subj_act=False, ignore_subject=None, column_names=None, ssl=False, transforms=None, limited=False, limited_k=1, instance_data=False, cae=False, store_in_ram=True):
+    def __init__(self, data_path, get_subjects=False, subj_act=False, ignore_subject=None, ssl=False, transforms=None, limited=False, limited_k=1, instance_data=False, cae=False, store_in_ram=True, use_devices=None, randomly_masked_channels=0):
         super().__init__()
         self.data_path = data_path
         self.limited = limited
         self.limited_k = limited_k
         self.ignore_subject = ignore_subject
+        self.use_devices = use_devices
+        self.randomly_masked_channels = randomly_masked_channels
     
         # if true the whole dataset is processed to RAM for faster training
         self.store_in_ram = store_in_ram
         if store_in_ram:
             print("Reading CSV files of {}...".format(data_path))
-            self.dataframes = [pd.read_csv(file_).fillna(0.0) for i, file_ in enumerate(tqdm(self.data_files))]
+            self.dataframes = self._read_data_to_ram()
             print("Done")
 
         self.len = len(self.data_files)
@@ -28,9 +30,9 @@ class SensorTorchDataset(Dataset):
         self.act_to_id, self.id_to_act = get_activity_dictionaries(self.data_path)
         self.subj_to_id, self.id_to_subj = get_subject_dictionaries(self.data_path)
         self.subjects = [self.subj_to_id[int(''.join(list(filter(str.isdigit, os.path.basename(file_).split('_')[0]))))] for file_ in self.data_files]
+        self.subejcts_str = [os.path.basename(file_).split('_')[0] for file_ in self.data_files]
         self.activities = [self.act_to_id[int(os.path.basename(file_).split('_')[2][1:])] for file_ in self.data_files]
         self.get_subjects = get_subjects
-        self.column_names = column_names
         self.ssl = ssl
         self.cae = cae
         self.instance_data = instance_data
@@ -39,6 +41,28 @@ class SensorTorchDataset(Dataset):
                 self.transforms = transforms
             else:
                 raise AttributeError('Provide tranforms in order to use ssl approach')
+
+
+    def _read_data_to_ram(self):
+        dfs = []
+        for i, file_ in enumerate(tqdm(self.data_files)):
+            df = self._read_and_mask_df(file_)
+            dfs.append(df)
+        return dfs
+
+
+    def _read_and_mask_df(self, file_,):
+        signals = pd.read_csv(file_).fillna(0)
+        for col in signals.columns:
+            if col not in self.use_devices:
+                signals[col] = np.random.normal(0, 1, len(signals[col]))
+        if self.randomly_masked_channels > 0:
+            num_channels = len(self.use_devices)
+            channels_to_mask = np.random.choice(np.array(signals.columns), size=self.randomly_masked_channels)
+            for col in channels_to_mask:
+                signals[col] = np.random.normal(0, 1, len(signals[col]))
+        return signals
+
 
     @property
     def data_files(self):
@@ -74,13 +98,8 @@ class SensorTorchDataset(Dataset):
         if self.store_in_ram:
             signals = self.dataframes[idx]
         else:
-            signals = pd.read_csv(self.data_files[idx]).fillna(0.0)
-        if self.column_names:
-            signals_list = []
-            for col_name in self.column_names:
-                columns = [column for column in signals.columns if col_name in column]
-                tmp_signals = np.array(signals[columns])
-                signals_list.append(tmp_signals)
+            signals = self._read_and_mask_df(self.data_files[idx])
+
         # get its label (activity or subject-activity)
         if self.subj_act:
             subject = self.subjects[idx]
@@ -88,24 +107,24 @@ class SensorTorchDataset(Dataset):
             label = self.subj_act_to_id['subject' + str(self.id_to_subj[subject])][self.id_to_act[act]]
         else:
             label = self.labels[idx]
-        if self.column_names:
-            return np.stack(signals_list), label
-        else:
-            if self.ssl:
-                x1 = self.transforms(np.array(signals))
-                x2 = self.transforms(np.array(signals))
-                if self.instance_data:
-                    return np.array(signals), x1, x2
-                else:
-                    return x1, x2	
-            elif self.cae:
-                return self.transforms(np.array(signals)), np.array(signals)
+        
+        # framework checks
+        if self.ssl:
+            x1 = self.transforms(np.array(signals))
+            x2 = self.transforms(np.array(signals))
+            if self.instance_data:
+                return np.array(signals), x1, x2
             else:
-                if self.get_subjects:
-                    subject = self.subjects[idx]
-                    return np.array(signals), label, subject
-                else:
-                    return np.array(signals), label
+                return x1, x2	
+        elif self.cae:
+            return self.transforms(np.array(signals)), np.array(signals)
+        else:
+            if self.get_subjects:
+                subject = self.subejcts_str[idx]
+                return np.array(signals), label, subject
+            else:
+                return np.array(signals), label
+
 
 def get_activity_dictionaries(path):
     """ Creates dictionaries mapping label from dataset to numbered list and vice versa
