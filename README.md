@@ -5,9 +5,7 @@ This repository covers the following papers on SSL for sensor-based Human Activi
 
 	![SIMCLR](/paper_img/simclr.png)
 
-2. Partially (unimodal case) - B. Khaertdinov, E. Ghaleb, and S. Asteriadis, “Contrastive Self-supervised Learning with Temporal Feature alignment for Sensor-based Human Activity Recognition“, - [[link]]()
-
-	![TFA](/paper_img/)
+2. Partially (unimodal case) - B. Khaertdinov, E. Ghaleb, and S. Asteriadis, “Contrastive Self-supervised Learning with Temporal Feature alignment for Sensor-based Human Activity Recognition“, - Accepted to IJCB 2022.
 
 Bibtex:
 ```
@@ -23,7 +21,7 @@ Bibtex:
 ```
 @INPROCEEDINGS{Khaertdinov_tfa_2022,
   author={Khaertdinov, Bulat and Asteriadis, Stylianos},
-  title={}
+  title={Contrastive Self-supervised Learning with Temporal Feature alignment for Sensor-based Human Activity Recognition}
 }
 ```
 
@@ -73,25 +71,25 @@ $ python split_dataset.py --dataset uci_har --path ./sampled_data/uci_har/uci_sm
 $ python split_dataset.py --dataset mobi_act --path ./sampled_data/mobi_act/mobi_act/ --random_subject_split 
 ```
 
-Train, validation and test splits are created randomly based on subjects for UCI-HAR and MobiAct datasets. Due to subject variability the final results may vary. Below are the subjects splits we got:
+Train, validation and test splits are created randomly based on subjects for UCI-HAR and MobiAct datasets. Due to subject variability, the final results may vary. Below are the subjects splits we got:
 ```
 mobi_act: {
-		'train':
-		'val'
-		'test':
+		'train': ['subject1', 'subject10', 'subject11', 'subject12', 'subject18', 'subject19', 'subject2', 'subject20', 'subject26', 'subject27', 'subject28', 'subject29', 'subject32', 'subject33', 'subject34', 'subject35', 'subject38', 'subject39', 'subject4', 'subject40', 'subject44', 'subject45', 'subject46', 'subject47', 'subject48', 'subject49', 'subject51', 'subject55', 'subject57', 'subject58', 'subject59', 'subject62', 'subject64', 'subject65', 'subject66', 'subject67', 'subject7', 'subject8']
+		'val': ['subject16', 'subject21', 'subject22', 'subject23', 'subject24', 'subject3', 'subject37', 'subject52', 'subject54', 'subject9']
+		'test': ['subject25', 'subject36', 'subject41', 'subject42', 'subject43', 'subject5', 'subject50', 'subject53', 'subject56', 'subject6', 'subject60', 'subject61', 'subject63']
 }
 
-usc_had: {
-		'train':
-		'val'
-		'test':
+uci_har: {
+		'train': ['subject01', 'subject05', 'subject06', 'subject07', 'subject08', 'subject09', 'subject12', 'subject13', 'subject15', 'subject16', 'subject17', 'subject18', 'subject19', 'subject20', 'subject22', 'subject23', 'subject25', 'subject27', 'subject29']
+		'val': ['subject04', 'subject10', 'subject21', 'subject24', 'subject28']
+		'test': ['subject02', 'subject03', 'subject11', 'subject14', 'subject26', 'subject30']
 }
 
 ```
 
-Additionally, there is an option to create folds for cross-validation and run experiments in cross-subject cross-validation settings. For this two arguments  have to be added. Example for UCI-HAR:
+Additionally, there is an option to create folds for cross-validation and run experiments in cross-subject cross-validation settings. For this two arguments have to be added. Example for MobiAct:
 ```
-$ python sample_datasets.py --datasets uci_smartphones --paths data/uci_smartphones/RawData/ --destination sampled_data/uci_har/ --downsample_freq 30 --cross_subject_splits --num_folds 5
+$ python sample_datasets.py --datasets mobi_act --paths data/mobi_act/MobiAct_Dataset_v2.0/Annotated/ --destination sampled_data/cs_mobi_act/ --downsample_freq 30 --cross_subject_splits --num_folds 5
 ```
 
 ## 3. Normalization
