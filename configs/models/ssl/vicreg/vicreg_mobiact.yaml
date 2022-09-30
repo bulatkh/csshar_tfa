@@ -15,23 +15,23 @@ model:
       max_len: 30
 
       kernel_size: 3
-      out_channels: [32, 64, 128]
+      out_channels: [64, 128, 256]
       
       num_head: 8
-      num_layers: 8
+      num_layers: 6
 
-      lr: 0.001
+      lr: 0.0001
       optimizer_name: "adam"
   ssl:
       args: []
       kwargs:
         ssl_lr: 0.0001
-        projection_hidden: 256
+        projection_hidden: 512
         embedding_size: 256
-        
+
         sim_coeff: 10
         std_coeff: 10
         cov_coeff: 5
 
-        ssl_batch_size: 128
+        ssl_batch_size: 256
         optimizer_name_ssl: "lars"

@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import seaborn as sns
 import torch
 from tqdm import tqdm
@@ -135,7 +136,8 @@ def plot_attributions_ts(
     cmap=None,
     outlier_perc=1,
     subtitles=None,
-    chart='heatmap_per_channel'
+    chart='heatmap_per_channel',
+    save_path=None
 ):
     
     example = _adjust_input(example)
@@ -164,7 +166,7 @@ def plot_attributions_ts(
             half_col_width = (x_values[1] - x_values[0]) / 2.0
 
             for chan in range(num_channels):
-                plt_axis[chan].plot(x_values, example[chan,:])
+                plt_axis[chan].plot(x_values, example[chan,:], 'k')
                 for icol, col_center in enumerate(x_values):
                     left = max(0, col_center - half_col_width)
                     right = min(col_center + half_col_width, ts_length)
@@ -179,6 +181,9 @@ def plot_attributions_ts(
                     plt_axis[chan].set_title(subtitles[chan])
             if activity != '' and xai_method != '':
                 plt.suptitle('{}: {}'.format(xai_method, activity))
+            if save_path is not None:
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                plt.savefig(save_path, bbox_inches = "tight")
             plt.show()
         
         elif chart == 'scatter_per_channel':

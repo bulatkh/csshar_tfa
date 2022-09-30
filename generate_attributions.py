@@ -28,7 +28,7 @@ def parse_arguments():
     parser.add_argument('--use_saved_attributions', action='store_true', default=False, help='Flag for using saved attributions')
 
     # data and models
-    parser.add_argument('--dataset', required=True, choices=['uci_har', 'mobi_act', 'usc_had'], help='Dataset name')
+    parser.add_argument('--dataset', required=True, choices=['uci_har', 'mobi_act', 'usc_had', 'pamap2'], help='Dataset name')
     parser.add_argument('--model', required=True, choices=['cnn1d', 'transformer'], help='Encoder model')
     parser.add_argument('--xai_model', required=True, choices=['guided_gradcam', 'guided_backprop'], help='Encoder model')
     
@@ -152,7 +152,7 @@ def draw_global_heatmap(tp_labels, normalized_attr_sum_over_ts, save_path, datas
     contributions_df.columns = dataset_cfg['devices']
     contributions_df.index = dataset_cfg['class_names']
 
-    sns.heatmap(contributions_df, annot=True)
+    sns.heatmap(contributions_df)#, annot=True)
     plt.savefig(os.path.join(save_path, 'global_heatmap.png'), bbox_inches="tight")
     plt.show()   
 

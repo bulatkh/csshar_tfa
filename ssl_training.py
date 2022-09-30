@@ -26,7 +26,7 @@ def parse_arguments():
     parser.add_argument('--augmentations_path', help='Path to augmentations yaml file')
 
     # data and models
-    parser.add_argument('--dataset', required=True, choices=['uci_har', 'mobi_act', 'usc_had'], help='Dataset name')
+    parser.add_argument('--dataset', required=True, choices=['uci_har', 'mobi_act', 'pamap2', 'usc_had'], help='Dataset name')
     parser.add_argument('--framework', default='simclr', choices=['simclr', 'dtw', 'vicreg'], help='SSL framework')
     parser.add_argument('--model', required=True, choices=['cnn1d', 'transformer'], help='Encoder model')
     parser.add_argument('--model_save_path', default='./model_weights', help='Folder for the model weights')
@@ -184,7 +184,7 @@ def fine_tuning(args, cfg, dataset_cfg, encoder, loggers_list, loggers_dict, exp
     Dictionary with metrics and their values
     """
     if not args.semi_sup:
-           seed_everything(cfg['experiment']['seed']) # reset seed for consistency in results
+        seed_everything(cfg['experiment']['seed']) # reset seed for consistency in results
     batch_size = cfg['experiment']['batch_size_fine_tuning']
     num_epochs = cfg['experiment']['num_epochs_fine_tuning']
 
@@ -329,6 +329,16 @@ def run_one_experiment(args, cfg, dataset_cfg, limited_k=None):
     else:
         model_cfg = cfg['model'][args.model]
         model_cfg['kwargs'] = {**dataset_cfg, **model_cfg['kwargs']}
+
+        if args.sweep:
+            _wandb = loggers_dict['wandb'].experiment
+            # Take encoder kwargs and merge with experiment config.
+            encoder_key_values = {key: _wandb.config[key] for key in _wandb.config.keys() if key.startswith('model.')}
+            encoder_kwargs_dict = flat_to_nested_dict(encoder_key_values)
+            if encoder_kwargs_dict != {}:
+                cfg['model'][args.model]['kwargs'] = {**cfg['model'][args.model]['kwargs'], **encoder_kwargs_dict['model']}
+            print(cfg['model'])
+        
         if args.fine_tuning:
             pre_trained_model = init_ssl_pretrained(model_cfg, args.fine_tuning_ckpt_path, cfg['model']['ssl']['kwargs']['projection_hidden'], dataset_cfg[args.dataset]['n_classes'])
             encoder = getattr(pre_trained_model, 'encoder')

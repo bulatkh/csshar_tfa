@@ -11,16 +11,16 @@ model:
     encoder_name: transformer
     args: []
     kwargs:
-      in_channels: 6
-      max_len: 30
+      in_channels: 28
+      max_len: 171
 
-      kernel_size: 3
-      out_channels: [32, 64, 128]
+      kernel_size: 5
+      out_channels: [64, 128, 256]
       
-      num_head: 8
+      num_head: 4
       num_layers: 8
 
-      lr: 0.001
+      lr: 0.0001
       optimizer_name: "adam"
   ssl:
       args: []
@@ -29,9 +29,6 @@ model:
         projection_hidden: 256
         embedding_size: 256
         
-        sim_coeff: 10
-        std_coeff: 10
-        cov_coeff: 5
-
-        ssl_batch_size: 128
+        temperature: 0.1
+        ssl_batch_size: 64
         optimizer_name_ssl: "lars"

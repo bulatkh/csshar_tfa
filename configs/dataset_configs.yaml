@@ -29,6 +29,7 @@ usc_had:
   main_metric: f1-score
   cross-subject: './cs_data/usc_had/usc_had/'
 
+
 mobi_act:
   train: './sampled_data/mobi_act/mobi_act/train'
   val: './sampled_data/mobi_act/mobi_act/val'
@@ -54,5 +55,13 @@ mobi_act:
     stable: 0
     active: 1
     transition: 2
-  probing_train_type : ['Car-step in', 'Car-step out', 'Sit to stand(chair up)', 'Walking', 'Stairs down', 'Sitting on chair', 'Jogging', 'Stairs up']
-  probing_test_type : ['Stand to sit(sit on chair)', 'Jumping', 'Standing']
+
+
+pamap2:
+  train: './sampled_data/pamap2_heart/pamap2/train'
+  val: './sampled_data/pamap2_heart/pamap2/val'
+  test: './sampled_data/pamap2_heart/pamap2/test'
+  n_classes: 12
+  class_names: ['lying', 'sitting', 'standing', 'walking', 'running','cycling','Nordic walking','ascending stairs','descending stairs','vacuum cleaning','ironing']
+  devices: ['heartrate','hand_acc1_X','hand_acc1_Y','hand_acc1_Z','hand_gyro_X','hand_gyro_Y','hand_gyro_Z','hand_mg_X','hand_mg_Y','hand_mg_Z','body_acc1_X','body_acc1_Y','body_acc1_Z','body_gyro_X','body_gyro_Y','body_gyro_Z','body_mg_X','body_mg_Y','body_mg_Z','ankle_acc1_X','ankle_acc1_Y','ankle_acc1_Z','ankle_gyro_X','ankle_gyro_Y','ankle_gyro_Z','ankle_mg_X','ankle_mg_Y','ankle_mg_Z']
+  main_metric: f1-score
