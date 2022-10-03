@@ -116,6 +116,8 @@ You can also add `--linear_eval` flag to use a linear evaluation protocol. The r
 	$ python ssl_training.py --experiment_config_path ./configs/models/ssl/simclr/simclr_mobiact.yaml --dataset mobi_act --augmentations_path configs/augmentations/jit_scal_rot.yaml --framework simclr --model transformer --num-workers 16
 	```
 
+You can access an example of model weights pre-trained with SimCLR in: https://drive.google.com/drive/folders/1rpKYHsd24v24QXV9kOOeCoprMft7JnVX?usp=sharing  
+
 2. Fine-tuning only. Needs a saved model for running.
 	```
 	$ python ssl_training.py --experiment_config_path ./configs/models/ssl/simclr/simclr_mobiact.yaml --dataset mobi_act --augmentations_path configs/augmentations/jit_scal_rot.yaml --framework simclr --model transformer --num-workers 16 --fine_tuning --fine_tuning_ckpt_path <path-to-pretrained-model>
