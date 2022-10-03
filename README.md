@@ -105,6 +105,13 @@ $ python normalization.py --train_path ./sampled_data/mobi_act/mobi_act/train/ -
 ## Running Experiments:
 In this section, we introduce how to run experiments on the MobiAct dataset (the same commands can be used for UCI-HAR and USC-HAD -- you only have to alter some args) for the default folder structure of data obtained in the previous step. In our papers we use CNN Encoder with Transformer-like self-attention layers defined in `models/transformer.py`. You can also use our training scripts with your own encoder derived from `torch.nn.Module` by adjusting an experiment configuration file (e.g. `./configs/models/ssl/simclr/simclr_mobiact.yaml`).
 
+<<<<<<< Updated upstream
+=======
+For Temporal Feature Alignment, we use SoftDTW implementation from https://github.com/Maghoumi/pytorch-softdtw-cuda. Git clone this repository to `./libraries` or comment out imports related to SoftDTW if you do not wish to use it.
+
+We used [LARC](https://github.com/NVIDIA/apex/blob/master/apex/parallel/LARC.py) optimizer from `apex.parallel`. As Pytorch optimizers require to have `closure` argument in `step` function (`closure` is used by some algorithms that re-evaluate the loss function multiple times -- it is not the case for our implementation), we added this argument to `step` function from `LARC.py` in our site-packages in order to make it compatible. You can also do this if you face the following error: `TypeError: step() got an unexpected keyword argument 'closure'`. Alternatively, you can try to change optimizer in `models/simclr.py` to `FusedLAMB` from `apex` or `LARS` from `lightning_bolts`.
+
+>>>>>>> Stashed changes
 1. Pre-training and fine-tuning on the whole training set using SimCLR (CSSHAR). The MLP is evaluated on the validation set after each epoch, and the best model is used for testing. To use, temporal feature alignment (TFA), change argument value to `--framework dtw`.
 You can also add `--linear_eval` flag to use a linear evaluation protocol. The results and logged values (loss curves, etc.) could be visualized in the wandb client (or using tensorboard logs).
 
