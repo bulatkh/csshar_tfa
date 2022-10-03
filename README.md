@@ -46,9 +46,9 @@ For more stable training, we use layer-wise adaptive rate control and wrap optim
 In this project, we use UCI-HAR, USC-HAD and MobiAct datasets. Specifically, raw accelerometer and gyroscope signals are downsampled to 30Hz and segmented into 50% overlapping time-windows of 1 second length. Then, the training, validation and test splits are created based on subjects. Finally, signals are normalized to have zero mean and unit variance per channel based on training data.
 
 Links to the datasets:
-1. UCI-HAR: 
-2. USC-HAD:
-3. MobiAct: 
+1. UCI-HAR: https://archive.ics.uci.edu/ml/datasets/human+activity+recognition+using+smartphones
+2. USC-HAD: https://sipi.usc.edu/had/
+3. MobiAct: https://bmi.hmu.gr/the-mobifall-and-mobiact-datasets-2/
 
 Download the datasets and unzip to `./data` folder in order to use the following scripts without changing them.
 
