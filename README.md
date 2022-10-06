@@ -34,11 +34,13 @@ We used **PyTorch** and **PyTorch Lightning** for our experiments. Additionally,
 * pytorch_lightning: `1.5.9`
 * wandb: `0.12.6`
 
-We also exported our conda environment into ``requirements.txt``. You can create and activate it by running the following command:
+We exported our conda environment into ``conda_env.yaml``. You can create and activate it by running the following command:
 ```
-$ conda create --name csshar --file requirements.txt
+$ conda env create -n csshar -f conda_env.yaml 
 $ conda activate csshar
 ```
+
+We also exported dependencies and conda environment to ``requirements.txt``, so it can be restored from there.
 
 For more stable training, we use layer-wise adaptive rate control and wrap optimizers into LARC from **apex**. Installation guidelines can be found via the following link: https://github.com/NVIDIA/apex#quick-start
 
@@ -86,6 +88,8 @@ uci_har: {
 }
 
 ```
+
+You can also choose train, validation and test subjects in `split_dataset.py` using `--val_users` and `--test_users` arguments.
 
 Additionally, there is an option to create folds for cross-validation and run experiments in cross-subject cross-validation settings. For this two arguments have to be added. Example for MobiAct:
 ```
