@@ -114,11 +114,13 @@ class MLPDropout(nn.Module):
         self.relu = nn.ReLU()
         self.linear1 = nn.Sequential(
             nn.Linear(in_size, hidden[0]),
+            # nn.BatchNorm1d(hidden[0]),
             nn.ReLU(inplace=True),
             nn.Dropout(0.2)
         )
         self.linear2 = nn.Sequential(
             nn.Linear(hidden[0], hidden[1]),
+            # nn.BatchNorm1d(hidden[1]),
             nn.ReLU(inplace=True),
             nn.Dropout(0.2)
         )

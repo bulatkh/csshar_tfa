@@ -15,4 +15,4 @@ channel_shuffle:
 permutation:
   apply: true
   parameters:
-    max_segments: 5
+    max_segments: 3

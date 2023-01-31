@@ -84,7 +84,6 @@ class SupervisedModel(LightningModule):
         ### Add LR Schedulers
         if self.optimizer_name.lower() == 'adam':
             optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10)
         return {
             "optimizer": optimizer,

@@ -1,0 +1,74 @@
+program: ssl_training.py
+method: grid
+project: sweep_vicreg_usc
+entity: sensor_har
+metric:
+  name: test_f1-score
+  goal: maximize
+command:
+  - ${env}
+  - ${interpreter}
+  - ${program}
+  - "--experiment_config_path"
+  - "configs/models/ssl/vicreg/vicreg_usc.yaml"
+  - "--dataset"
+  - "usc_had"
+  - "--model"
+  - "transformer"
+  - "--augmentations_path"
+  - "configs/augmentations/jit_scal_perm.yaml"
+  - "--framework"
+  - "vicreg"
+  - "--sweep"
+parameters:
+  # General configs
+  num_epochs_ssl: 
+    values: [200]
+  num_epochs_fine_tuning:
+    values: [100]
+  batch_size_fine_tuning:
+    values: [128]
+
+  # SSL configs (will overwrite kwargs in ssl model definition)
+  transformer.num_head:
+    values: [4, 8]
+  transformer.out_channels:
+    values: [[16, 32, 64], [32, 64, 128]]
+  
+  ssl.ssl_batch_size:
+    values: [128, 256]
+  ssl.sim_coeff:
+    values: [25, 10]
+  ssl.std_coeff:
+    values: [25, 10]
+  ssl.cov_coeff:
+    values: [1, 2, 5]
+  ssl.ssl_lr: 
+    values: [0.0001]
+
+  # Augmentation configs (scaling)
+  augmentations.jittering.apply:
+    values: [true]
+  augmentations.jittering.parameters.sigma:
+    values: [0.5, 1]
+
+  augmentations.scaling.apply:
+    values: [true]
+  augmentations.scaling.parameters.sigma:
+    values: [0.5, 1]
+
+  augmentations.rotation.apply:
+    values: [false]
+
+  augmentations.permutation.apply:
+    values: [true]
+  augmentations.permutation.parameters.max_segments:
+    values: [3]
+
+  augmentations.channel_shuffle.apply:
+    values: [false]
+
+  augmentations.shift.apply:
+    values: [false]
+  augmentations.shift.parameters.max_shift:
+    values: [5]

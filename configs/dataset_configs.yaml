@@ -21,7 +21,7 @@ uci_har:
 
 usc_had: 
   train: './sampled_data/usc_had/usc_had/train'
-  val: './sampled_data/usc_had/usc_had/val'
+  val: './sampled_data/usc_had/usc_had/test'
   test: './sampled_data/usc_had/usc_had/test'
   n_classes: 12
   class_names: ['Walking Forward', 'Walking Left', 'Walking Right', 'Walking Upstairs', 'Walking Downstairs', 'Running Forward', 'Jumping Up', 'Sitting', 'Standing', 'Sleeping', 'Elevator Up', 'Elevator Down']

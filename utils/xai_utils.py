@@ -33,6 +33,7 @@ def save_correct_preds_and_attrs(datamodule, model, xai_models, label_list, acti
         curr_attrs = {}
         for name, xai_model in xai_models.items():
             attribution = xai_model.attribute(example, label)
+            print(attribution.shape)
             attribution = _adjust_input(attribution)
             if attribution.shape[0] == 1:
                 attribution = np.tile(attribution, (num_channels, 1))
@@ -65,7 +66,7 @@ def produce_all_preds_and_attrs(datamodule, model, xai_model, batch_size):
         pred_batch = torch.argmax(out, dim=1)
 
         # generate attributions (explanation)
-        attribution_batch = xai_model.attribute(example_batch, label_batch)
+        attribution_batch = xai_model.attribute(example_batch, label_batch, pred_batch)
         
         examples.append(example_batch.detach().numpy())
         attributions.append(attribution_batch.detach().numpy())
@@ -86,7 +87,7 @@ def plot_attribution_heatmap(attribution, activity='', xai_method='', yticks=Non
     plt.show()
 
 
-def plot_ts(ts, figsize=(8, 10), subtitles=None):
+def plot_ts(ts, figsize=(8, 10), subtitles=None, save=None):
     num_channels = ts.shape[0]
     fig, axes = plt.subplots(num_channels, 1, figsize=figsize) 
     for i in range(num_channels):
@@ -95,6 +96,8 @@ def plot_ts(ts, figsize=(8, 10), subtitles=None):
         if subtitles is not None:
             axes[i].set_title(subtitles[i])
     fig.tight_layout()
+    if save is not None:
+        plt.savefig(save, bbox_inches='tight')
     plt.show()
 
 

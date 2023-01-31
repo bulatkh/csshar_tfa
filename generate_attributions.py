@@ -5,6 +5,9 @@ import os
 import pandas as pd
 import seaborn as sns
 
+from scipy.stats import entropy
+from scipy.spatial import distance
+
 import torch
 
 from captum.attr import GuidedBackprop, GuidedGradCam
@@ -19,8 +22,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
 
     # configs paths
-    parser.add_argument('--model_config_path', required=True, help='Path to experiment yaml file')
-    parser.add_argument('--model_ckpt_path', required=True, help='Path to the pre-trained encoder')
+    parser.add_argument('--model_config_path', help='Path to experiment yaml file')
+    parser.add_argument('--model_ckpt_path', help='Path to the pre-trained encoder')
     parser.add_argument('--dataset_config_path', default='configs/dataset_configs.yaml', help='Path to datasets yaml file')
     parser.add_argument('--save_path', default='./xai_results', help='Path to folder for data/predictions/attributions to be saved')
 
@@ -134,11 +137,38 @@ def draw_global_attribution_scores(labels, preds, attributions, save_path, datas
     attr_sum_over_ts = np.abs(tp_attributions).sum(axis=2)
     sum_per_example = attr_sum_over_ts.sum(axis=1).reshape(len(attr_sum_over_ts), 1)
     normalized_attr_sum_over_ts = (attr_sum_over_ts / sum_per_example)
-    normalized_attr_sum_over_ts[np.isnan(normalized_attr_sum_over_ts)] = 1 / len(dataset_cfg['devices'])
+    
+    tp_labels = tp_labels[~np.isnan(normalized_attr_sum_over_ts.sum(axis=1))]
+
+    normalized_attr_sum_over_ts = normalized_attr_sum_over_ts[~np.isnan(normalized_attr_sum_over_ts.sum(axis=1))]
+    
+    kl_div_summary(tp_labels, normalized_attr_sum_over_ts, save_path, dataset_cfg)
 
     draw_global_heatmap(tp_labels, normalized_attr_sum_over_ts, save_path, dataset_cfg)
     draw_global_barplot(tp_labels, normalized_attr_sum_over_ts, save_path, dataset_cfg)
 
+def kl_div_summary(tp_labels, normalized_attr_sum_over_ts, save_path, dataset_cfg):
+    unique_labels = np.unique(tp_labels)
+    uniform = np.zeros(len(dataset_cfg['devices'])) + 1 / len(dataset_cfg['devices'])
+
+    kl_list = []
+    kl_lists_by_labels = [[] for _ in range(len(unique_labels))]
+    kl_summary = []
+    for i in range(len(normalized_attr_sum_over_ts)):
+        # tmp_kl = entropy(normalized_attr_sum_over_ts[i], base=2)
+        tmp_kl = entropy(normalized_attr_sum_over_ts[i], base=2)
+        kl_list.append(tmp_kl)
+        kl_lists_by_labels[tp_labels[i]].append(tmp_kl)
+    
+    for i in range(len(unique_labels)):
+        tmp_mean_kl = np.array(kl_lists_by_labels[i]).mean()
+        kl_summary.append((dataset_cfg['class_names'][i].capitalize(), round(tmp_mean_kl,2)))
+
+    average_kl = np.array(kl_list).mean()
+    kl_summary.append(('Average', round(average_kl, 2)))
+    kl_summary_df = pd.DataFrame(kl_summary)
+    print(kl_summary_df)
+    kl_summary_df.to_csv(os.path.join(save_path, 'kl_div_summary.csv') , index=None, header=None)
 
 def draw_global_heatmap(tp_labels, normalized_attr_sum_over_ts, save_path, dataset_cfg):
     unique_labels = np.unique(tp_labels)
@@ -152,7 +182,9 @@ def draw_global_heatmap(tp_labels, normalized_attr_sum_over_ts, save_path, datas
     contributions_df.columns = dataset_cfg['devices']
     contributions_df.index = dataset_cfg['class_names']
 
-    sns.heatmap(contributions_df)#, annot=True)
+    if len(dataset_cfg['devices']) > 10:
+        plt.figure(figsize=(15, 10))
+    sns.heatmap(contributions_df, xticklabels=True, yticklabels=True, annot=True, vmin=0, vmax=0.3)
     plt.savefig(os.path.join(save_path, 'global_heatmap.png'), bbox_inches="tight")
     plt.show()   
 

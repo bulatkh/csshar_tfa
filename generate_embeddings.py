@@ -24,7 +24,7 @@ def parse_arguments():
     parser.add_argument('--save_path', default='./xai_results', help='Path to datasets yaml file')
 
     # data and models
-    parser.add_argument('--dataset', required=True, choices=['uci_har', 'mobi_act', 'usc_had'], help='Dataset name')
+    parser.add_argument('--dataset', required=True, choices=['uci_har', 'mobi_act', 'pamap2', 'usc_had'], help='Dataset name')
     parser.add_argument('--model', required=True, choices=['cnn1d', 'transformer'], help='Encoder model')
     
     parser.add_argument('--batch_size', default=128)

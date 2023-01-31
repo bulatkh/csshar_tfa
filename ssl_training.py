@@ -47,6 +47,7 @@ def parse_arguments():
     parser.add_argument('--cross_subject_cv', action='store_true', default=False, help='Flag for using cross-subject cross-validation')
     parser.add_argument('--num_folds', default=5, help='Number of folds in cross-subject cv')
     parser.add_argument('--fine_tuning_ckpt_paths', nargs='+', help='Path to pre-trained encoders if only fine-tuning is needed for cross-subject cv')
+    parser.add_argument('--seed', default=None, help='Override seed value')
 
     # semi-supervised learning
     parser.add_argument('--semi_sup', action='store_true', default=False, help='Flag for running semi-supervised learning experiments. Can be combined with --supervised')
@@ -55,6 +56,7 @@ def parse_arguments():
 
     parser.add_argument('--noise_devices', nargs='+', help='Devices that should be masked out with Gaussian nouse in occlusion experiments')
     parser.add_argument('--noise_devices_test', nargs='+', help='Devices that should be masked out with Gaussian nouse in test data')
+    parser.add_argument('--test_occlusion', action='store_true', default=False)
     parser.add_argument('--randomly_masked_channels_test', type=int, default=0, help='Number of channels to randomly mask')
     parser.add_argument('--xai_study', action='store_true', default=False)
 
@@ -184,7 +186,10 @@ def fine_tuning(args, cfg, dataset_cfg, encoder, loggers_list, loggers_dict, exp
     Dictionary with metrics and their values
     """
     if not args.semi_sup:
-        seed_everything(cfg['experiment']['seed']) # reset seed for consistency in results
+        if args.seed is None:
+            seed_everything(cfg['experiment']['seed']) # reset seed for consistency in results
+        else:
+            seed_everything(args.seed) # reset seed for consistency in results
     batch_size = cfg['experiment']['batch_size_fine_tuning']
     num_epochs = cfg['experiment']['num_epochs_fine_tuning']
 
@@ -313,6 +318,10 @@ def run_one_experiment(args, cfg, dataset_cfg, limited_k=None):
 
     if args.xai_study:
         approach += '_xai'
+    
+    if args.test_occlusion:
+        approach += '_test_occlusion'
+        
 
     loggers_list, loggers_dict = init_loggers(args, cfg, experiment_id, fine_tune_only=False, approach=approach)
 

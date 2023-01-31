@@ -82,6 +82,7 @@ def save_wandb_logs_from_api(project_name, csv_path):
 	for run in runs: 
 		# .summary contains the output keys/values for metrics like accuracy.
 		#  We call ._json_dict to omit large files 
+		# print(run.name, run.summary["confusion_matrix_table"]['artifact_path'])
 		summary_list.append(run.summary._json_dict)
 
 		# .config contains the hyperparameters.
