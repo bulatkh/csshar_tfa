@@ -10,6 +10,7 @@ wandb/
 
 results/
 xai_results/
+aug_vis/
 
 # notebooks
 embedding_vis.ipynb
@@ -21,6 +22,7 @@ xai_captum.ipynb
 # saved models
 model_weights/
 probing_model_weights/
+model_weights_papers/
 
 # pycache and misc
 models/__pycache__/
