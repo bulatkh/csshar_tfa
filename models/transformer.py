@@ -101,6 +101,7 @@ class Transformer(nn.Module):
         self.kernel_size = kernel_size
         self.dropout = dropout
         self.use_cls = use_cls
+        self.cls = nn.Parameter((torch.randn(1, 1, self.out_channels[-1]))).cuda() if use_cls else None
         self.cnn = ConvLayers(in_channels, out_channels, kernel_size=kernel_size, sample_len=max_len)
         self.positional_encoding = PositionalEncoding(d_model=out_channels[-1], dropout=dropout, max_len=max_len + int(self.use_cls))
         
@@ -115,11 +116,8 @@ class Transformer(nn.Module):
         
         self.dropout = nn.Dropout(p=dropout)  
 
-        self.use_cls = use_cls
-        if not self.use_cls:
-            self.out_size  = self.cnn.out_size 
-        else:
-            self.out_size = out_channels[-1]
+        self.out_size = out_channels[-1] if self.use_cls else self.cnn.out_size
+
     
     def forward(self, x):
         x = self.cnn(x)
@@ -134,17 +132,11 @@ class Transformer(nn.Module):
 
         x = self.dropout(x)
 
-        if self.use_cls:
-            x = x[0]
-        else:
-            x = x.permute(1, 0, 2)
+        x = x[0] if self.use_cls else x.permute(1, 0, 2)
 
-        if self.return_attention:
-            return x, attention_maps
-        else:
-            return x
+        return x, attention_maps if self.return_attention else x
 
     def _append_cls_token(self, x):
-        cls_batch = nn.Parameter((torch.randn(1, x.shape[1], self.out_channels[-1]))).cuda()
+        cls_batch = self.cls.expand((-1, x.shape[1], -1))
         x = torch.cat((cls_batch, x), 0)
         return x
