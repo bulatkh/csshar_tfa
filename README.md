@@ -34,11 +34,13 @@ We used **PyTorch** and **PyTorch Lightning** for our experiments. Additionally,
 * pytorch_lightning: `1.5.9`
 * wandb: `0.12.6`
 
-We also exported our conda environment into ``requirements.txt``. You can create and activate it by running the following command:
+We exported our conda environment into ``conda_env.yaml``. You can create and activate it by running the following command:
 ```
-$ conda create --name csshar --file requirements.txt
+$ conda env create -n csshar -f conda_env.yaml 
 $ conda activate csshar
 ```
+
+We also exported dependencies and conda environment to ``requirements.txt``, so it can be restored from there.
 
 For more stable training, we use layer-wise adaptive rate control and wrap optimizers into LARC from **apex**. Installation guidelines can be found via the following link: https://github.com/NVIDIA/apex#quick-start
 
@@ -46,9 +48,9 @@ For more stable training, we use layer-wise adaptive rate control and wrap optim
 In this project, we use UCI-HAR, USC-HAD and MobiAct datasets. Specifically, raw accelerometer and gyroscope signals are downsampled to 30Hz and segmented into 50% overlapping time-windows of 1 second length. Then, the training, validation and test splits are created based on subjects. Finally, signals are normalized to have zero mean and unit variance per channel based on training data.
 
 Links to the datasets:
-1. UCI-HAR: 
-2. USC-HAD:
-3. MobiAct: 
+1. UCI-HAR: https://archive.ics.uci.edu/ml/datasets/human+activity+recognition+using+smartphones
+2. USC-HAD: https://sipi.usc.edu/had/
+3. MobiAct: https://bmi.hmu.gr/the-mobifall-and-mobiact-datasets-2/
 
 Download the datasets and unzip to `./data` folder in order to use the following scripts without changing them.
 
@@ -87,6 +89,8 @@ uci_har: {
 
 ```
 
+You can also choose train, validation and test subjects in `split_dataset.py` using `--val_users` and `--test_users` arguments.
+
 Additionally, there is an option to create folds for cross-validation and run experiments in cross-subject cross-validation settings. For this two arguments have to be added. Example for MobiAct:
 ```
 $ python sample_datasets.py --datasets mobi_act --paths data/mobi_act/MobiAct_Dataset_v2.0/Annotated/ --destination sampled_data/cs_mobi_act/ --downsample_freq 30 --cross_subject_splits --num_folds 5
@@ -105,12 +109,18 @@ $ python normalization.py --train_path ./sampled_data/mobi_act/mobi_act/train/ -
 ## Running Experiments:
 In this section, we introduce how to run experiments on the MobiAct dataset (the same commands can be used for UCI-HAR and USC-HAD -- you only have to alter some args) for the default folder structure of data obtained in the previous step. In our papers we use CNN Encoder with Transformer-like self-attention layers defined in `models/transformer.py`. You can also use our training scripts with your own encoder derived from `torch.nn.Module` by adjusting an experiment configuration file (e.g. `./configs/models/ssl/simclr/simclr_mobiact.yaml`).
 
+For Temporal Feature Alignment, we use SoftDTW implementation from https://github.com/Maghoumi/pytorch-softdtw-cuda. Git clone this repository to `./libraries` or comment out imports related to SoftDTW if you do not wish to use it.
+
+We used [LARC](https://github.com/NVIDIA/apex/blob/master/apex/parallel/LARC.py) optimizer from `apex.parallel`. As Pytorch optimizers require to have `closure` argument in `step` function (`closure` is used by some algorithms that re-evaluate the loss function multiple times -- it is not the case for our implementation), we added this argument to `step` function from `LARC.py` in our site-packages in order to make it compatible. You can also do this if you face the following error: `TypeError: step() got an unexpected keyword argument 'closure'`. Alternatively, you can try to change optimizer in `models/simclr.py` to `FusedLAMB` from `apex` or `LARS` from `lightning_bolts`.
+
 1. Pre-training and fine-tuning on the whole training set using SimCLR (CSSHAR). The MLP is evaluated on the validation set after each epoch, and the best model is used for testing. To use, temporal feature alignment (TFA), change argument value to `--framework dtw`.
 You can also add `--linear_eval` flag to use a linear evaluation protocol. The results and logged values (loss curves, etc.) could be visualized in the wandb client (or using tensorboard logs).
 
 	```
 	$ python ssl_training.py --experiment_config_path ./configs/models/ssl/simclr/simclr_mobiact.yaml --dataset mobi_act --augmentations_path configs/augmentations/jit_scal_rot.yaml --framework simclr --model transformer --num-workers 16
 	```
+
+You can access an example of model weights pre-trained with SimCLR in: https://drive.google.com/drive/folders/1rpKYHsd24v24QXV9kOOeCoprMft7JnVX?usp=sharing  
 
 2. Fine-tuning only. Needs a saved model for running.
 	```
