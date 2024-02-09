@@ -9,7 +9,7 @@ This repository covers the following papers on SSL for sensor-based Human Activi
 
 Bibtex:
 ```
-@INPROCEEDINGS{Khaertdinov_csshar_2021,
+@inproceedings{Khaertdinov_csshar_2021,
   author={Khaertdinov, Bulat and Ghaleb, Esam and Asteriadis, Stylianos},
   booktitle={2021 IEEE International Joint Conference on Biometrics (IJCB)}, 
   title={Contrastive Self-supervised Learning for Sensor-based Human Activity Recognition}, 
@@ -19,9 +19,13 @@ Bibtex:
   ```
 
 ```
-@INPROCEEDINGS{Khaertdinov_tfa_2022,
+@inproceedings{khaertdinov2022temporal,
+  title={Temporal feature alignment in contrastive self-supervised learning for human activity recognition},
   author={Khaertdinov, Bulat and Asteriadis, Stylianos},
-  title={Contrastive Self-supervised Learning with Temporal Feature alignment for Sensor-based Human Activity Recognition}
+  booktitle={2022 IEEE International Joint Conference on Biometrics (IJCB)},
+  pages={1--9},
+  year={2022},
+  organization={IEEE}
 }
 ```
 
